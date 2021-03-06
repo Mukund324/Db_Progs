@@ -1,0 +1,186 @@
+Selecting data from sailors table
+SQL> select * from sailors;
+SID SNAME AGE RATING
+--------- ---------- --------- ---------
+22 dustin 7 45
+29 brutus 1 33
+31 lubber 8 55
+32 andy 8 25.5
+58 rusty 10 35
+64 horatio 7 35
+71 zorba 10 40
+74 horatio 9 40
+85 art 3 25.5
+95 bob 3 63.5
+
+10 rows selected.
+Selecting data from reserves table
+SQL> select * from reserves;
+
+SID BID DAY
+--------- --------- ------
+22 101 10-OCT-98
+22 102 10-OCT-98
+22 103 10-AUG-98
+22 104 10-JUL-98
+31 102 11-OCT-98
+31 103 11-JUN-98
+31 104 11-DEC-98
+64 101 09-MAY-98
+64 102 09-AUG-98
+74 104 09-AUG-98
+10 rows selected.
+Selecting data from boat table
+SQL> select * from boats;
+BID BNAME COLOR
+--------- -------------------- ----------
+101 interlake blue
+102 interlake red
+103 clipper green
+104 marine red
+
+Q: find the names of sailors who have reserved boat 103.
+SQL> select s.sname from sailors s where s.sid in (select r.sid from reserves r where r.bid=103);
+
+SNAME
+--------------
+dustin
+lubber
+2 rows selected.
+Q: find the names of sailors who have reserved a red boat.
+SQL> select s.sname from sailors s where s.sid in
+(select r.sid from reserves r where r.bid in
+(select b.bid from boats b where b.color='red'));
+SNAME
+--------------------
+dustin
+lubber
+horatio
+horatio
+4 rows selected.
+Q: Find the name and age of the oldest sailors.
+
+SQL> select MAX(s.age)from sailors s;
+
+MAX(S.AGE)
+----------
+10
+
+
+Q: Count the number of sailors.
+SQL> select COUNT(s.age)from sailors s
+COUNT(S.AGE)
+------------
+10
+
+Q: Count the number of different sailors names.
+
+SQL> select COUNT(distinct s.sname)* from sailors s
+COUNT(DISTINCTS.SNAME)
+----------------------
+9
+Q: find the names of sailors who have not reserved a red boat.
+SQL> select s.sname
+2 from sailors s
+3 where s.sid not in (select r.sid
+4 from reserves r
+5 where r.bid in (select b.bid
+6 from boats b
+7 where b.color='red'))
+SNAME
+--------
+brutus
+andy
+rusty
+zorba
+art
+bob
+6 rows selected.
+
+
+Q: find the names of sailors who have not reserved boat 103.
+SQL> select s.sname from sailors s where exists(select * from reserves r where r.bid=103 and r.sid=s.sid);
+
+
+
+SNAME
+-------
+dustin
+lubber
+2 rows selected.
+Q: find the names of sailors who have reserved at least one boat.
+SQL> select s.sname from sailors s, reserves r where s.sid=r.sid;
+
+
+SNAME
+----------
+dustin
+dustin
+dustin
+dustin
+lubber
+lubber
+lubber
+horatio
+horatio
+horatio
+
+10 rows selected.
+Q: Compute increments for the ratings of persons who have sailed two different boats on the same day.
+
+SQL> select s.sname,s.rating+1 As rating from sailors s, reserves r1, reserves r2 where s.sid=r1.sid AND s.sid=r2.sid AND r1.day=r2.day AND r1.bid<>r2.bid
+
+SNAME RATING
+-------------------- ---------
+dustin 46
+dustin 46
+
+Q: Find the names of sailors who have reserved a red or a green boat.
+SQL> select s.sname from sailors s, reserves r,boats b where s.sid=r.sid AND r.bid=b.bid AND (b.color='red' OR b.color='green')
+
+SNAME
+--------------------
+dustin
+dustin
+dustin
+lubber
+lubber
+lubber
+horatio
+horatio
+
+8 rows selected.
+Q: find the all sids of sailors who have rating 10 or have reserved boat 104..
+SQL> select s.sid from sailors s where s.rating=10 union
+select r.sid from reserves r where r.bid=104;
+
+SID
+------
+22
+31
+74
+Q: Find the number of reservations for each red boat.
+SQL> select b.bid,count(*)As sailorcount from boats b, reserves r where r.bid=b.bid AND b.color='red' group by b.bid;
+BID SAILORCOUNT
+--------- -----------
+102 3
+104 3
+Q: Find the minimum age of the sailor.
+
+SQL> select min(s.age) from sailors s;
+
+MIN(S.AGE)
+----------
+1
+Q: Find the sum of the rating of sailors.
+SQL> select sum(s.rating)from sailors s;
+SUM(S.RATING)
+-------------
+397.5
+
+Q: find the id and names of sailors who have reserved id=22 or age<25.
+
+SQL> select sid,sname from sailors where sid=22 or age<25
+SID SNAME
+-- --------
+22 dustin
